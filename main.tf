@@ -2,7 +2,6 @@ terraform {
   required_version = ">= 1.1"
 
   backend "gcs" {
-    credentials = "./terraform.json"
     bucket = "tf-ga-state"
     prefix = "terraform-github"
   }
