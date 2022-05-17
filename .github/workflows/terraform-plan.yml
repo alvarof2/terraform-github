@@ -111,6 +111,13 @@ jobs:
       id: validate
       run: terraform validate -no-color
 
+    - name: Terraform Apply Refresh Only
+      env:
+        TF_VAR_token: ${{ secrets.GH_TOKEN }}
+      id: apply-refresh
+      run: terraform apply -refresh-only
+      continue-on-error: true
+
     - name: Terraform Plan
       env:
         TF_VAR_token: ${{ secrets.GH_TOKEN }}
