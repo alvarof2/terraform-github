@@ -33,7 +33,7 @@ resource "github_repository_file" "terraform_github_gitignore" {
   repository          = github_repository.terraform_github.name
   branch              = "main"
   file                = ".gitignore"
-  content             = ""# Manage Github with Terraform""
+  content             = ""
   commit_message      = "Managed by Terraform"
   commit_author       = "Terraform User"
   commit_email        = "terraform@example.com"
