@@ -67,4 +67,6 @@ resource "github_branch_protection" "terraform_github_main" {
     strict = true
   }
 
+  depends_on = [github_repository_file.terraform_github_readme, github_repository_file.terraform_github_gitignore]
+
 }
