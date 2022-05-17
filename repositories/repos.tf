@@ -29,6 +29,26 @@ resource "github_repository_file" "terraform_github_readme" {
 
 }
 
+resource "github_repository_file" "terraform_github_gitignore" {
+  repository          = github_repository.terraform_github.name
+  branch              = "main"
+  file                = ".gitignore"
+  content             = ""
+  commit_message      = "Managed by Terraform"
+  commit_author       = "Terraform User"
+  commit_email        = "terraform@example.com"
+  overwrite_on_create = true
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags, e.g. because a management agent
+      # updates these based on some ruleset managed elsewhere.
+      content,
+    ]
+  }
+
+}
+
 resource "github_branch_protection" "terraform_github_main" {
   repository_id = github_repository.terraform_github.node_id
 
