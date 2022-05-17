@@ -2,7 +2,6 @@ terraform {
   required_version = ">= 1.1"
 
   backend "gcs" {
-    credentials = "./terraform.json"
     bucket = "tf-ga-state"
     prefix = "terraform-github"
   }
@@ -17,6 +16,6 @@ terraform {
 
 # Configure the GitHub Provider
 provider "github" {
-    token = var.token
-    owner = "alvarof2"
+  token = var.token
+  owner = "alvarof2"
 }
