@@ -115,7 +115,7 @@ jobs:
       env:
         TF_VAR_token: ${{ secrets.GH_TOKEN }}
       id: apply-refresh
-      run: terraform apply -refresh-only
+      run: terraform apply -refresh-only -auto-approve -no-color
       continue-on-error: true
 
     - name: Terraform Plan
