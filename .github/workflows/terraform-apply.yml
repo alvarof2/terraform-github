@@ -1,0 +1,115 @@
+name: Run terraform apply
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - '**.tf'
+
+jobs:
+
+  check:
+    name: Check files
+    outputs:
+      matrix: ${{ steps.check_files.outputs.matrix }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: check modified files
+        id: check_files
+        run: |
+          dir_array=()
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+          dir_array='['
+          while IFS= read -r file
+          do
+
+            dir=$file
+
+            if [[ $(basename $dir) != *.tf ]]; then
+              continue
+            fi
+
+            dir="$(dirname $dir)"
+
+            if [[ "$dir_array" =~ .*"$dir".* ]]; then
+              continue
+            fi
+
+            if [[ $dir_array == "[" ]]
+            then
+              elem="\"$dir\""
+            else
+              elem=", \"$dir\""
+            fi
+
+            dir_array="$dir_array$elem"
+            #dir_array[${#dir_array[@]}]=$dir
+
+          done < files.txt
+
+          end=']'
+          dir_array="$dir_array$end"
+
+          matrix=$(echo "$dir_array" | jq -c .)
+
+          echo $matrix
+          echo "::set-output name=matrix::$matrix"
+
+  setup-and-apply:
+    name: Setup and Apply
+    runs-on: ubuntu-latest
+    needs: check
+
+    strategy:
+      matrix:
+        dirs: ${{ fromJson(needs.check.outputs.matrix) }}
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.dirs }}
+
+    # Add "id-token" with the intended permissions.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      pull-requests: 'write'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Alternative option - authentication via credentials json
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+    # Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+
+    - uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.1.7
+
+    - name: Terraform Init
+      id: init
+      run: terraform init
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    - name: Terraform Apply
+      env:
+        TF_VAR_token: ${{ secrets.GH_TOKEN }}
+      id: plan
+      run: terraform apply -auto-approve -no-color
